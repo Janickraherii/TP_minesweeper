@@ -1,8 +1,10 @@
-Joueur : lolo Life: 0 Score: 0
+Joueur : R Life: 0 Score: 3
+Joueur : COLO Life: 0 Score: 2
+Joueur : titi Life: 0 Score: 0
 Game Board:
 - - - - - - 
-- - M - M - 
-- - - - - - 
+- - M - - - 
+- - - M - - 
 - - - - - - 
 - - - - - - 
 - - - - - - 
