@@ -1,8 +1,8 @@
-Life: 1
+Joueur : lolo Life: 0 Score: 0
 Game Board:
 - - - - - - 
--  - M - - 
-- - - M - - 
+- - M - M - 
+- - - - - - 
 - - - - - - 
 - - - - - - 
 - - - - - - 
