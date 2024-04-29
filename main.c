@@ -22,15 +22,19 @@ typedef struct Node {
 
 Node* head = NULL;
 
+char playerName[50]; // nom du joueur
+
 void markAsVisited(int row, int col);
 int isVisited(int row, int col); // Déclaration du prototype de la fonction
 
 void playGame(char realBoard[][SIZE], char playerBoard[][SIZE], int *life);
 char countAdjacentMines(char realBoard[][SIZE], int row, int col);
-char playerName[50]; // nom du joueur
 void printBoard(char board[][SIZE]);
 bool checkWin(char realBoard[][SIZE], char playerBoard[][SIZE]);
 void displayRecords();
+bool containsDash(char playerBoard[SIZE][SIZE]);
+void saveGame(int score, char playerBoard[SIZE][SIZE]);
+
 
 void showRules() {
     printf("🕹️ La règle du jeu est simple :\n");
@@ -48,7 +52,6 @@ void chooseMenu(int choice, char realBoard[][SIZE], char playerBoard[][SIZE], in
     switch (choice) {
         case 1:
             printf("----Start 🚩🚩----\n");
-            char playerName[50];
             printf("Entrez votre pseudo: ");
             scanf("%s", playerName);
             printf("C'est parti %s ! \n", playerName);
@@ -66,11 +69,13 @@ void chooseMenu(int choice, char realBoard[][SIZE], char playerBoard[][SIZE], in
             }
 
             printf("Records:\n");
-            int score;
+
+            char recordPlayerName[50];
+            int recordLife, recordScore;
 
             // Lire chaque ligne du fichier
-            while (fscanf(file, "%s %d", playerName, &score) == 2) {
-                printf("Joueur: %s - Score: %d\n", playerName, score);
+            while (fscanf(file, "Joueur : %s Life: %d Score: %d", recordPlayerName, &recordLife, &recordScore) == 3) {
+                printf("Joueur: %s - Vie: %d - Score: %d\n", recordPlayerName, recordLife, recordScore);
             }
 
             fclose(file);
@@ -90,55 +95,7 @@ void chooseMenu(int choice, char realBoard[][SIZE], char playerBoard[][SIZE], in
     }
 }
 
-void saveGame(int life, char playerBoard[SIZE][SIZE]) {
-    FILE *file = fopen("savegame.txt", "w");
-    if (file == NULL) {
-        printf("Erreur d'ouverture du fichier de sauvegarde!\n");
-        return;
-    }
-
-    // Sauvegarder vie
-    fprintf(file, "Life: %d\n", life);
-
-    // Sauvegarder l'état du tableau de jeu
-    fprintf(file, "Game Board:\n");
-    for (int i = 0; i < SIZE; i++) {
-        for (int j = 0; j < SIZE; j++) {
-            fprintf(file, "%c ", playerBoard[i][j]);
-        }
-        fprintf(file, "\n");
-    }
-
-    fclose(file);
-    printf("Partie sauvegardée avec succès!\n");
-}
-
-void displayRecords() {
-    FILE *file = fopen("records.txt", "r");
-    if (file == NULL) {
-        printf("Impossible d'ouvrir le fichier de records\n");
-        return;
-    }
-
-    char line[256];
-    while (fgets(line, sizeof(line), file)) {
-        printf("%s", line);
-    }
-
-    fclose(file);
-}
-
-// Fonction pour vérifier si '-' existe dans playerBoard
-bool containsDash(char playerBoard[SIZE][SIZE]) {
-    for (int i = 0; i < SIZE; i++) {
-        for (int j = 0; j < SIZE; j++) {
-            if (playerBoard[i][j] == '-') {
-                return true;
-            }
-        }
-    }
-    return false;
-}
+bool containsDash(char playerBoard[SIZE][SIZE]);
 
 int main() {
     char realBoard[SIZE][SIZE];
@@ -215,7 +172,7 @@ void playGame(char realBoard[][SIZE], char playerBoard[][SIZE], int *life) {
         markAsVisited(row, col);
 
         if (realBoard[row][col] == 'M') {
-            printf("BOOM! Vous avez frappé une mine, vous perdez une vie.\n");
+            printf("BOOM 💣! Vous avez frappé une mine, vous perdez une vie.\n");
             printf("Démineur:\n");
             playerBoard[row][col] = 'M'; // Remplacer '-' par 'M' dans le playerBoard
             printBoard(playerBoard);
@@ -295,4 +252,38 @@ bool checkWin(char realBoard[][SIZE], char playerBoard[][SIZE]) {
         }
     }
     return true;
+}
+
+bool containsDash(char playerBoard[SIZE][SIZE]) {
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            if (playerBoard[i][j] == '-') {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+void saveGame(int life, char playerBoard[SIZE][SIZE]){
+        FILE *file = fopen("savegame.txt", "w");
+    if (file == NULL) {
+        printf("Erreur d'ouverture du fichier de sauvegarde!\n");
+        return;
+    }
+
+    // Sauvegarder le joueur, la vie et le score
+    fprintf(file, "Joueur : %s Life: %d Score: %d\n", playerName, life, score);
+
+    // Sauvegarder l'état du tableau de jeu
+    fprintf(file, "Game Board:\n");
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            fprintf(file, "%c ", playerBoard[i][j]);
+        }
+        fprintf(file, "\n");
+    }
+
+    fclose(file);
+    printf("Partie sauvegardée avec succès!\n");
 }
