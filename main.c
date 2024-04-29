@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <time.h>
+#include <string.h>
 
 #define SIZE 6
 
@@ -72,16 +73,17 @@ void chooseMenu(int choice, char realBoard[][SIZE], char playerBoard[][SIZE], in
 
             char recordPlayerName[50];
             int recordLife, recordScore;
+            int recordsCount = 0;
 
             // Lire chaque ligne du fichier
-            while (fscanf(file, "Joueur : %s Life: %d Score: %d", recordPlayerName, &recordLife, &recordScore) == 3) {
+            while (fscanf(file, "Joueur : %s Life: %d Score: %d\n", recordPlayerName, &recordLife, &recordScore) == 3 && recordsCount < 3) {
                 printf("Joueur: %s - Vie: %d - Score: %d\n", recordPlayerName, recordLife, recordScore);
+                recordsCount++;
             }
 
             fclose(file);
 
             printf("\nAppuyez sur '0' pour retourner au menu principal: ");
-            int choice;
             scanf("%d", &choice);
             if (choice == 0) {
                 printf("\n");
@@ -94,6 +96,7 @@ void chooseMenu(int choice, char realBoard[][SIZE], char playerBoard[][SIZE], in
             break;
     }
 }
+
 
 bool containsDash(char playerBoard[SIZE][SIZE]);
 
@@ -221,6 +224,70 @@ void playGame(char realBoard[][SIZE], char playerBoard[][SIZE], int *life) {
     }
 }
 
+// Structure pour représenter un enregistrement de score
+typedef struct {
+    char playerName[50];
+    int life;
+    int score;
+} ScoreRecord;
+
+void sortRecords(ScoreRecord records[], int numRecords) {
+    for (int i = 0; i < numRecords - 1; i++) {
+        for (int j = 0; j < numRecords - i - 1; j++) {
+            if (records[j].score < records[j + 1].score) {
+                // Échanger les enregistrements
+                ScoreRecord temp = records[j];
+                records[j] = records[j + 1];
+                records[j + 1] = temp;
+            }
+        }
+    }
+}
+
+void saveGame(int score, char playerBoard[SIZE][SIZE]){
+    // Créer un tableau pour stocker les enregistrements de score
+    ScoreRecord records[3];
+
+    // Lire les enregistrements existants du fichier
+    FILE *file = fopen("savegame.txt", "r");
+    if (file != NULL) {
+        for (int i = 0; i < 3; i++) {
+            fscanf(file, "Joueur : %s Life: %d Score: %d\n", records[i].playerName, &records[i].life, &records[i].score);
+        }
+        fclose(file);
+    }
+
+    // Ajouter le nouveau score au tableau
+    strcpy(records[2].playerName, playerName);
+    records[2].life = life;
+    records[2].score = score;
+
+    // Trier les enregistrements
+    sortRecords(records, 3);
+
+    // Écrire les trois meilleurs scores dans le fichier
+    file = fopen("savegame.txt", "w");
+    if (file == NULL) {
+        printf("Erreur d'ouverture du fichier de sauvegarde!\n");
+        return;
+    }
+
+    for (int i = 0; i < 3; i++) {
+        fprintf(file, "Joueur : %s Life: %d Score: %d\n", records[i].playerName, records[i].life, records[i].score);
+    }
+
+    // Sauvegarder l'état du tableau de jeu
+    fprintf(file, "Game Board:\n");
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            fprintf(file, "%c ", playerBoard[i][j]);
+        }
+        fprintf(file, "\n");
+    }
+
+    fclose(file);
+    printf("Partie sauvegardée avec succès!\n");
+} 
 
 char countAdjacentMines(char realBoard[][SIZE], int row, int col) {
     int count = 0;
@@ -263,27 +330,4 @@ bool containsDash(char playerBoard[SIZE][SIZE]) {
         }
     }
     return false;
-}
-
-void saveGame(int life, char playerBoard[SIZE][SIZE]){
-        FILE *file = fopen("savegame.txt", "w");
-    if (file == NULL) {
-        printf("Erreur d'ouverture du fichier de sauvegarde!\n");
-        return;
-    }
-
-    // Sauvegarder le joueur, la vie et le score
-    fprintf(file, "Joueur : %s Life: %d Score: %d\n", playerName, life, score);
-
-    // Sauvegarder l'état du tableau de jeu
-    fprintf(file, "Game Board:\n");
-    for (int i = 0; i < SIZE; i++) {
-        for (int j = 0; j < SIZE; j++) {
-            fprintf(file, "%c ", playerBoard[i][j]);
-        }
-        fprintf(file, "\n");
-    }
-
-    fclose(file);
-    printf("Partie sauvegardée avec succès!\n");
 }
